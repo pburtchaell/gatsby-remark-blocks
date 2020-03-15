@@ -4,47 +4,8 @@ const { getTypeByAlias } = require('./utils')
 const { remarkPluginOptions } = require('./aliases')
 
 module.exports = ({ markdownAST }, pluginOptions) => {
-    const rootClasses = pluginOptions.root
     const tagClasses = pluginOptions.tag
     const remarkClasses = pluginOptions.remark
-
-    /**
-     * Loop through the top level nodes in
-     * root to prevent duplicated/nested
-     * classes, e.g. for paragraphs.
-     */
-    markdownAST.children.forEach((node, i) => {
-        if (
-            node.type === 'html' ||
-            (node.children && node.children[0].type === 'html')
-        ) {
-            // skip plugin generated and inline HTML
-            return
-        }
-
-        /**
-         * Search for definite node root types.
-         */
-        if (rootClasses) {
-            const typeNames = Object.keys(rootClasses)
-            typeNames.forEach(name => {
-                if (node.type === name) {
-                    node = {
-                        type: 'div',
-                        data: {
-                            hProperties: {
-                                className: rootClasses[name],
-                            },
-                        },
-                        children: [node],
-                    }
-                }
-            })
-        }
-
-        // override linked object node
-        markdownAST.children[i] = node
-    })
 
     /**
      * Search for each node types by an alias (tag) globally.
