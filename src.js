@@ -1,23 +1,7 @@
-const rootClasses = ['h1', 'h2', 'h3']
+const visit = require('unist-util-visit')
 
-module.exports = ({ markdownAST }) => {
-    markdownAST.children.forEach((node, i) => {
-        const typeNames = Object.keys(rootClasses)
-
-        typeNames.forEach(name => {
-            if (node.type === name) {
-                node = {
-                    type: 'div',
-                    data: {
-                        hProperties: {
-                            className: rootClasses[name],
-                        },
-                    },
-                    children: [node],
-                }
-            }
-        })
-
-        markdownAST.children[i] = node
-    })
+module.exports = ({ markdownAST }, options) => {
+    const tagClasses = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'ul', 'ol', 'img', 'blockquote']
+    console.log(markdownAST)
+    return markdownAST
 }
