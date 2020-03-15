@@ -1,0 +1,19 @@
+{
+  "name": "gatsby-remark-blocks",
+  "version": "0.1.0",
+  "description": "",
+  "main": "src.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pburtchaell/gatsby-remark-blocks.git"
+  },
+  "author": "Patrick Burtchaell <patrick@pburtchaell.com> (https://pburtchaell.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pburtchaell/gatsby-remark-blocks/issues"
+  },
+  "homepage": "https://github.com/pburtchaell/gatsby-remark-blocks#readme"
+}
