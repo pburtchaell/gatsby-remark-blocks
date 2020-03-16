@@ -1,7 +1,7 @@
 {
   "name": "gatsby-remark-blocks",
-  "version": "0.4.0",
-  "description": "",
+  "version": "0.5.0",
+  "description": "Plugin for gatsby-transformer-remark to wrap Markdown elements in HTML divs",
   "main": "src.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/pburtchaell/gatsby-remark-blocks/issues"
   },
-  "homepage": "https://github.com/pburtchaell/gatsby-remark-blocks#readme"
+  "homepage": "https://github.com/pburtchaell/gatsby-remark-blocks#readme",
+  "dependencies": {
+    "mdast-util-to-string": "^1.1.0",
+    "unist-util-visit": "^2.0.2"
+  }
 }

@@ -1,68 +1,94 @@
 const visit = require('unist-util-visit')
+const toString = require('mdast-util-to-string')
 
-const { getTypeByAlias } = require('./utils')
-const { remarkPluginOptions } = require('./aliases')
+const listReducer = (list, child) => {
+  if (child) {
+    return list + `<li>${toString(child)}</li>`
+  }
+}
 
-module.exports = ({ markdownAST }, pluginOptions) => {
-    const tagClasses = pluginOptions.tag
-    const remarkClasses = pluginOptions.remark
+// Documentation
+// Remark - https://github.com/remarkjs/remark
+// Markdown Abstract Syntax Tree - https://github.com/syntax-tree/mdast
+// Universal Syntax Tree - https://github.com/syntax-tree/unist
+module.exports = async ({ markdownAST }, pluginOptions) => {
+  const classNames = pluginOptions && pluginOptions.classNames || {
+    heading: 'markdown-heading',
+    list: 'markdown-list',
+    orderedList: 'markdown-ordered-list',
+    unorderedList: 'markdown-unordered-list',
+    blockquote: 'markdown-blockquote',
+    paragraph: 'markdown-paragraph',
+  }
 
-    /**
-     * Search for each node types by an alias (tag) globally.
-     */
-    if (tagClasses) {
-        const tags = Object.keys(tagClasses)
-        tags.forEach(name => {
-            const tagType = getTypeByAlias(name) /** @return {string} e.g. heading */
+  // Markdown AST Types
+  // Heading - https://github.com/syntax-tree/mdast#heading
+  // Paragraph - https://github.com/syntax-tree/mdast#paragraph
+  // Blockquote - https://github.com/syntax-tree/mdast#blockquote
+  // List - https://github.com/syntax-tree/mdast#list
+  visit(markdownAST, ['heading'], node => {
+    const { depth } = node
+    const text = toString(node)
 
-            switch (tagType) {
-                case 'heading':
-                    const depth = Number(name[1]) // get depth from tag name `h1`[1]
-                    const isHDepth = node =>
-                        node.type === 'heading' && node.depth === depth
-                    visit(markdownAST, isHDepth, node => {
-                        if (!node.data) node.data = {}
-                        node.data.hProperties = { className: tagClasses[name] }
-                    })
-                    break
+    node.type = 'html'
+    node.children = undefined
+    node.value = `
+      <div class="${classNames.heading}">
+        <h${depth}>
+          ${text}
+        </h${depth}>
+      </div>
+    `
+  })
 
-                default:
-                    visit(markdownAST, tagType, node => {
-                        if (!node.data) node.data = {}
-                        node.data.hProperties = { className: tagClasses[name] }
-                    })
-                    break
-            }
-        })
+  visit(markdownAST, ['paragraph', 'list', 'blockquote'], node => {
+    const { depth } = node
+    const text = toString(node)
+    let type = null
+    let className = null
+    let html = null
+
+    switch (node.type) {
+      case 'paragraph':
+        type = 'p'
+        className = classNames.paragraph
+        break
+      case 'list':
+        if (node.ordered) {
+          type = 'ol'
+          className = `${classNames.list} ${classNames.orderedList}`
+        } else {
+          type = 'ul'
+          className = `${classNames.list} ${classNames.unorderedList}`
+        }
+        break
+      case 'blockquote':
+        type = 'blockquote'
+        className = classNames.blockquote
+        break
     }
 
-    /**
-     * Search globally in AST because the most time
-     * those plugin generated stuff is inside a
-     * paragraph node.
-     */
-    if (remarkClasses) {
-        const plgNames = Object.keys(remarkClasses)
-        plgNames.forEach(name => {
-            if (Object.keys(remarkPluginOptions).indexOf(name) > -1) {
-                const { type, value } = remarkPluginOptions[name]
-
-                switch (type) {
-                    case 'html':
-                        visit(markdownAST, 'html', node => {
-                            if (node.value.includes(value)) {
-                                node.value = `<div class="${remarkClasses[name]}">${node.value}</div>`
-                            }
-                        })
-                        break
-
-                    default:
-                        // noop
-                        break
-                }
-            }
-        })
+    if (node.type === 'list') {
+      html = `
+        <div class="${className}">
+          <${type}>
+            ${node.children.reduce(listReducer, '')}
+          </${type}>
+        </div>
+      `
+    } else {
+      html = `
+        <div class="${className}">
+          <${type}>
+            ${text}
+          </${type}>
+        </div>
+      `
     }
+    node.type = 'html'
+    node.children = undefined
+    node.value = html
+  })
 
-    return markdownAST
+  return markdownAST
 }
